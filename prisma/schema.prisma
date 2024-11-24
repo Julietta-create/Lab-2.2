@@ -1,0 +1,75 @@
+// prisma/schema.prisma
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+  }
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Client {
+  id            Int           @id @default(autoincrement()) @map("id")
+  name          String        @map("name")
+  phone         String        @map("phone")
+  reservations  Reservation[] 
+
+  @@map("Клієнт")
+}
+
+model Room {
+  id            Int           @id @default(autoincrement()) @map("id")
+  status        String        @map("status")
+  number        String        @map("number")
+  reservations  Reservation[]
+
+  @@map("Номер")
+}
+
+model Employee {
+  id        Int        @id @default(autoincrement()) @map("id")
+  name      String     @map("name")
+  phone     String     @map("phone")
+  position  String     @map("position")
+  services  Service[]
+
+  @@map("Співробітник")
+}
+
+model Reservation {
+  reservationId   Int        @id @default(autoincrement()) @map("reservation_id")
+  guestId         Int        @map("guest_id")
+  roomId          Int        @map("room_id")
+  reservationDate DateTime   @map("reservation_date")
+  
+  client          Client     @relation(fields: [guestId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  room            Room       @relation(fields: [roomId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  payments        Payment[]  
+  services        Service[]
+
+  @@map("Бронювання")
+}
+
+model Payment {
+  paymentId     Int         @id @default(autoincrement()) @map("payment_id")
+  reservationId Int         @map("reservation_id")
+  amount        Float       @map("amount")
+  date          DateTime    @map("date")
+  
+  reservation    Reservation @relation(fields: [reservationId], references: [reservationId], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("Оплата")
+}
+
+model Service {
+  serviceId      Int         @id @default(autoincrement()) @map("service_id")
+  serviceTypeId  Int         @map("service_type_id")
+  reservationId  Int         @map("reservation_id")
+  employeeId     Int         @map("employee_id")
+  
+  reservation     Reservation @relation(fields: [reservationId], references: [reservationId], onDelete: Cascade, onUpdate: Cascade)
+  employee        Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@map("Послуга")
+}
